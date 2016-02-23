@@ -6,6 +6,7 @@
 import cv2
 import numpy
 import math
+import random
 
 from numpy.random import random_integers
 from scipy.signal import convolve2d
@@ -53,6 +54,8 @@ def create_2d_gaussian(dim, sigma):
     
     # normalise it
     return kernel/sum(sum(kernel))
+
+
 
 
 def elastic_transform(image, kernel_dim=13, sigma=6, alpha=36, negated=False):
@@ -132,3 +135,79 @@ def elastic_transform(image, kernel_dim=13, sigma=6, alpha=36, negated=False):
         result = 255-result
 
     return result
+
+
+
+
+
+##
+## cropping and resizing image to (size_x, size_y):
+##
+## img2 - should be matrix
+## img_x - new x shape dimension
+## img_y - new y shape dimension
+
+def crop_and_resize_img (img2,img_x,img_y):
+
+	img_crop = numpy.zeros([img_x,img_y])
+
+	cur_x = img2.shape[0]
+	cur_y = img2.shape[1]
+
+
+	# cropping image borders
+	if (cur_y>img_y):
+	    crop_y = (cur_y-img_y)/2.0
+	    crop_y = int(math.ceil(crop_y))
+	    img2 = img2[:,crop_y:(crop_y+28)]
+	    
+	# cropping image borders
+	if (cur_x>img_x):
+	    crop_x = (cur_x-img_x)/2.0
+	    crop_x = int(math.ceil(crop_x))
+	    img2 = img2[crop_x:(crop_x+28),:]
+
+
+	# resizing smaller image to larger scale
+	cur_x = img2.shape[0]
+	cur_y = img2.shape[1]
+
+	st_x = int(math.ceil((img_x - cur_x)/2.0-0.5))
+	st_y = int(math.ceil((img_y - cur_y)/2.0-0.5))
+
+	img_crop[st_x:(st_x+cur_x),st_y:(st_y+cur_y)] = img2
+	return (img_crop)
+
+
+
+
+
+##
+##  scalling image by both coordinates by phi values:
+##
+## img_nes should be a matrix
+##
+
+def img_xy_scale (img_nes):
+	
+	phi_x = random.uniform(1-0.2,1+0.2)  # random scalling factor
+	phi_y = random.uniform(1-0.2,1+0.2)  # random scalling factor
+	res = cv2.resize(img_nes, None, fx=phi_x, fy=phi_y, interpolation = cv2.INTER_LINEAR)
+	return res
+
+
+
+
+
+##
+##  rotating image by both coordinates by phi values:
+##
+## img_nes should be a matrix
+##
+
+def img_rotation (img_nes):
+	
+	beta = random.uniform(-15,15)  # random rotation coeffieint
+	M = cv2.getRotationMatrix2D((img_nes.shape[0]/2,img_nes.shape[1]/2),beta,1)
+	img_nes = cv2.warpAffine(img_nes,M,(img_nes.shape[0],img_nes.shape[1]))
+	return img_nes
